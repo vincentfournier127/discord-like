@@ -11,16 +11,18 @@ import (
 )
 
 type UserHandler struct {
-	ur *repository.UserRepository
+	ur repository.UserRepository
 }
 
-func NewUserHandler(ur *repository.UserRepository) *UserHandler {
+func NewUserHandler(ur repository.UserRepository) *UserHandler {
 	return &UserHandler{
 		ur: ur,
 	}
 }
 
 func (h *UserHandler) GetUser(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	idstr := c.Param("id")
 
 	id, err := strconv.Atoi(idstr)
@@ -30,9 +32,9 @@ func (h *UserHandler) GetUser(c *gin.Context) {
 		return
 	}
 
-	user, ok := h.ur.GetByID(id)
+	user, err := h.ur.GetByID(ctx, id)
 
-	if !ok {
+	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 		return
 	}
@@ -44,6 +46,7 @@ func (h *UserHandler) GetUser(c *gin.Context) {
 }
 
 func (h *UserHandler) CreateUser(c *gin.Context) {
+	ctx := c.Request.Context()
 	var newUser model.User
 
 	if err := c.ShouldBindJSON(&newUser); err != nil {
@@ -51,7 +54,11 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		return
 	}
 
-	h.ur.Create(&newUser)
+	u, err := h.ur.Create(ctx, &newUser)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
-	c.JSON(http.StatusOK, newUser)
+	c.JSON(http.StatusCreated, u)
 }

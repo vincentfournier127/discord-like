@@ -8,14 +8,24 @@ import (
 
 	"discord-like/internal/api"
 	"discord-like/internal/api/handlers"
+	"discord-like/internal/database"
 	"discord-like/internal/repository"
 )
 
 func main() {
+
+	// Initialize database
+	db, err := database.NewPostgresPool()
+	if err != nil {
+		log.Fatalf("Failed to start DB: %v", err)
+	}
+
 	// Initialize router
 	r := gin.Default()
-	ur := repository.NewUserRepository()
-	uh := handlers.NewUserHandler(ur)
+
+	//repo := repository.NewMemoryUserRepository()
+	userRepo := repository.NewPostgresUserRepository(db)
+	uh := handlers.NewUserHandler(userRepo)
 	api.RegisterRoutes(r, uh)
 
 	// Define routes
