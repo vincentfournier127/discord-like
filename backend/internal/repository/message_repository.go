@@ -1,13 +1,11 @@
 package repository
 
-import "github.com/jackc/pgx/v5/pgxpool"
+import (
+	"context"
+	"discord-like/internal/api/model"
+)
 
-type MessageRepository struct {
-	db *pgxpool.Pool
-}
-
-func NewMessageRepository(db *pgxpool.Pool) *MessageRepository {
-	return &MessageRepository{
-		db: db,
-	}
+type MessageRepository interface {
+	Create(ctx context.Context, msg *model.Message) (*model.Message, error)
+	GetByChatroomID(ctx context.Context, chatroomID int, limit int, offset int) ([]model.Message, error)
 }

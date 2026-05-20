@@ -24,10 +24,11 @@ func (r *PostgresUserRepository) Create(ctx context.Context, u *model.User) (*mo
 		ctx,
 		`INSERT INTO users (name) 
 		VALUES($1) 
-		RETURNING id`,
+		RETURNING id, created_at`,
 		u.Name,
 	).Scan(
 		&u.ID,
+		&u.CreatedAt,
 	)
 
 	if err != nil {
@@ -39,31 +40,32 @@ func (r *PostgresUserRepository) Create(ctx context.Context, u *model.User) (*mo
 
 func (r *PostgresUserRepository) GetByID(ctx context.Context, id int) (model.User, error) {
 
-	var user model.User
+	var u model.User
 
 	err := r.db.QueryRow(
 		ctx,
-		`SELECT id, name
+		`SELECT id, name, created_at
 		FROM users 
 		WHERE id = $1`,
 		id,
 	).Scan(
-		&user.ID,
-		&user.Name,
+		&u.ID,
+		&u.Name,
+		&u.CreatedAt,
 	)
 
 	if err != nil {
-		return user, err
+		return u, err
 	}
 
-	return user, nil
+	return u, nil
 }
 
 func (r *PostgresUserRepository) GetAll(ctx context.Context) ([]model.User, error) {
 
 	rows, err := r.db.Query(
 		ctx,
-		`SELECT id, name
+		`SELECT id, name, created_at
 		FROM users`,
 	)
 	if err != nil {
@@ -75,17 +77,18 @@ func (r *PostgresUserRepository) GetAll(ctx context.Context) ([]model.User, erro
 	var users []model.User
 
 	for rows.Next() {
-		var user model.User
+		var u model.User
 
 		err := rows.Scan(
-			&user.ID,
-			&user.Name,
+			&u.ID,
+			&u.Name,
+			&u.CreatedAt,
 		)
 		if err != nil {
 			return nil, err
 		}
 
-		users = append(users, user)
+		users = append(users, u)
 	}
 
 	if err := rows.Err(); err != nil {
