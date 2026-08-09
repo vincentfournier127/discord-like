@@ -2,19 +2,23 @@ package api
 
 import (
 	"net/http"
+
 	"github.com/gin-gonic/gin"
 
 	"discord-like/internal/api/handlers"
 )
-func RegisterRoutes(router *gin.Engine, h *handlers.UserHandler)  {
-	
-	router.GET("/health", func(c *gin.Context){
+
+func RegisterRoutes(router *gin.Engine, uh *handlers.UserHandler) {
+
+	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
-			"status":"ok",
+			"status": "ok",
 		})
 	})
 
-	router.GET("/users/:id", h.GetUser)
+	router.GET("/users/:id", uh.GetUser)
 
-	router.POST("/users", h.CreateUser)
+	router.POST("/users", uh.CreateUser)
+
+	router.POST("/chatrooms")
 }
